@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Questionario progetto UNIBA – UNISALENTO</title>
+  <style>
+    :root {
+      --accento: #1d4f7a;
+      --accento-chiaro: #e8f0f7;
+      --testo: #1c2430;
+      --tenue: #5b6675;
+      --bordo: #d9dee5;
+      --sfondo: #f4f6f9;
+      --errore: #b3261e;
+      --raggio: 10px;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0; background: var(--sfondo); color: var(--testo);
+      font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .wrap { max-width: 780px; margin: 0 auto; padding: 24px 16px 48px; }
+    .testata { background: #fff; border: 1px solid var(--bordo); border-top: 6px solid var(--accento);
+      border-radius: var(--raggio); padding: 20px 24px 16px; margin-bottom: 16px; }
+    .testata h1 { font-size: 1.45rem; line-height: 1.25; margin: 0 0 4px; }
+    .testata .sottotitolo { color: var(--tenue); margin: 0 0 16px; }
+    .progresso { height: 6px; background: var(--accento-chiaro); border-radius: 3px; overflow: hidden; }
+    .barra { height: 100%; width: 0; background: var(--accento); transition: width .3s; }
+
+    .sezione { background: #fff; border: 1px solid var(--bordo); border-radius: var(--raggio); padding: 8px 24px 16px; }
+    .sezione h2 { font-size: 1.15rem; color: var(--accento); margin: 16px 0 8px; }
+    .descr { color: var(--tenue); margin: 0 0 8px; }
+    .nota { background: var(--accento-chiaro); border-left: 4px solid var(--accento); padding: 10px 14px;
+      border-radius: 6px; margin: 8px 0; }
+
+    .informativa { border: 1px solid var(--bordo); border-radius: 8px; margin: 12px 0 4px; background: #fafbfc; }
+    .informativa summary { cursor: pointer; padding: 12px 14px; font-weight: 600; color: var(--accento); }
+    .informativa[open] summary { border-bottom: 1px solid var(--bordo); }
+    .informativa .corpo { padding: 4px 16px 12px; font-size: .92rem; color: var(--testo); }
+    .informativa h3 { font-size: .92rem; margin: 12px 0 2px; }
+    .informativa p { margin: 0; }
+    .informativa a, .descr a { color: var(--accento); }
+    .domanda { padding: 20px 0; border-top: 1px solid var(--bordo); }
+    .domanda:first-of-type { border-top: 0; }
+    .etichetta { font-weight: 600; margin-bottom: 4px; }
+    .codice { display: inline-block; font-size: .8rem; font-weight: 700; color: var(--accento);
+      background: var(--accento-chiaro); border-radius: 4px; padding: 0 6px; margin-right: 4px; }
+    .nascondi-codici .etichetta > .codice { display: none; }
+    .aiuto { color: var(--tenue); font-size: .92rem; margin-bottom: 8px; }
+
+    .opzioni { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+    .opzioni.orizz { flex-direction: row; flex-wrap: wrap; }
+    .opzioni.orizz .opz { flex: 1 1 0; min-width: 96px; justify-content: center; text-align: center; }
+    .opz { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--bordo);
+      border-radius: 8px; cursor: pointer; background: #fff; transition: border-color .15s, background .15s; }
+    .opz:hover { border-color: var(--accento); }
+    .opz:has(input:checked) { border-color: var(--accento); background: var(--accento-chiaro); }
+    .opz input { margin: 4px 0 0; accent-color: var(--accento); flex: none; }
+    .opzioni.orizz .opz input { margin-top: 4px; }
+
+    input[type=text], textarea { width: 100%; font: inherit; padding: 9px 12px; border: 1px solid var(--bordo);
+      border-radius: 8px; background: #fff; }
+    input[type=text]:focus, textarea:focus { outline: 2px solid var(--accento); outline-offset: -1px; border-color: var(--accento); }
+    input.altro { margin-top: 2px; }
+    input.specifica { margin: 8px 0 0; }
+    textarea { resize: vertical; margin-top: 10px; }
+    .contatore { text-align: right; color: var(--tenue); font-size: .85rem; }
+
+    .riga { padding: 14px 0 6px; border-top: 1px dashed var(--bordo); }
+    .riga:first-of-type { border-top: 0; }
+    .riga-titolo { font-weight: 500; }
+    .riga .codice { margin-right: 6px; }
+
+    .errore, .errore-riga { color: var(--errore); font-size: .9rem; margin-top: 8px; font-weight: 600; }
+    .con-errore > .etichetta, .riga.con-errore > .riga-titolo { color: var(--errore); }
+    .domanda.con-errore { border-left: 3px solid var(--errore); padding-left: 12px; margin-left: -15px; }
+
+    .navigazione { display: flex; justify-content: space-between; gap: 12px; margin-top: 16px; }
+    .btn { font: inherit; font-weight: 600; padding: 11px 24px; border-radius: 8px; cursor: pointer; border: 1px solid var(--accento); }
+    .btn.primario { background: var(--accento); color: #fff; margin-left: auto; }
+    .btn.primario:disabled { opacity: .6; cursor: wait; }
+    .btn.secondario { background: #fff; color: var(--accento); }
+
+    .esito { background: #fff; border: 1px solid var(--bordo); border-radius: var(--raggio); padding: 32px 24px; text-align: center; }
+    .esito h2 { color: var(--accento); margin-top: 0; }
+    .avviso { color: var(--errore); font-weight: 600; margin-top: 12px; text-align: right; }
+
+    @media (max-width: 560px) {
+      .wrap { padding: 12px 8px 32px; }
+      .testata, .sezione { padding-left: 16px; padding-right: 16px; }
+      .opzioni.orizz { flex-direction: column; }
+      .opzioni.orizz .opz { justify-content: flex-start; text-align: left; }
+      .domanda.con-errore { margin-left: -11px; padding-left: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="testata">
+      <h1 id="titolo"></h1>
+      <p class="sottotitolo" id="sottotitolo"></p>
+      <div class="progresso" aria-hidden="true"><div class="barra" id="barra"></div></div>
+    </header>
+    <main id="app"></main>
+    <div class="avviso" id="avviso" hidden></div>
+    <nav class="navigazione" id="nav">
+      <button type="button" class="btn secondario" id="indietro">Indietro</button>
+      <button type="button" class="btn primario" id="avanti">Avanti</button>
+    </nav>
+    <div class="esito" id="esito" hidden>
+      <h2>Grazie per la collaborazione</h2>
+      <p>Le sue risposte sono state registrate. Può chiudere questa pagina.</p>
+    </div>
+  </div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   DEFINIZIONE DEL QUESTIONARIO
+   Qui si modificano testi, opzioni e regole di routing.
+   Ogni domanda: id (nome della variabile), tipo, testo, opzioni, se (condizione).
+   Le condizioni ricevono "r" = risposte date finora (solo domande mostrate).
+   Le domande con "attesa" sono controlli di attenzione: ogni rispondente ne vede uno solo
+   (AC2 se usa l'AI, AC3 se non la usa). La web app registra anche AC2_ok, AC3_ok
+   (1 = superato, 0 = no) e AC_esito (1 = valida, 3 = da escludere).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const OPZIONI = {
+  titolo: 'Questionario progetto UNIBA – UNISALENTO',
+  sottotitolo: 'Uso dell’intelligenza artificiale e processi decisionali',
+  intro:
+    'Questo questionario fa parte di una ricerca dell’Università degli Studi di Bari Aldo Moro e dell’Università del Salento ' +
+    'sull’uso dell’intelligenza artificiale nei processi decisionali delle organizzazioni. ' +
+    'La compilazione richiede circa 15 minuti. Le risposte sono riservate e analizzate solo in forma aggregata.',
+  // Informativa sul trattamento dei dati personali (art. 13 GDPR), mostrata in un riquadro apribile
+  informativa: [
+    { titolo: 'Titolari del trattamento',
+      testo: 'Università degli Studi di Bari Aldo Moro, Piazza Umberto I, 1 – 70121 Bari, e Università del Salento, ' +
+        'Piazza Tancredi 7 – 73100 Lecce, ciascuna rappresentata dal proprio Rettore.' },
+    { titolo: 'Responsabili della protezione dei dati (RPD)',
+      testo: 'I Responsabili della protezione dei dati dell’Università degli Studi di Bari Aldo Moro e dell’Università del ' +
+        'Salento possono essere contattati ai recapiti pubblicati nella sezione «Privacy» dei siti uniba.it e unisalento.it.' },
+    { titolo: 'Finalità e base giuridica',
+      testo: 'I dati sono trattati esclusivamente per finalità di ricerca scientifica connesse al progetto, nell’esercizio dei ' +
+        'compiti di interesse pubblico delle Università (art. 6, par. 1, lett. e) del Regolamento UE 2016/679 – GDPR) e con le ' +
+        'garanzie previste dall’art. 89 GDPR per i trattamenti a fini di ricerca.' },
+    { titolo: 'Dati raccolti',
+      testo: 'Il questionario raccoglie informazioni sull’organizzazione e sulle sue pratiche relative all’AI. Gli unici dati ' +
+        'riferiti alla persona sono: il ruolo ricoperto nell’organizzazione; le eventuali osservazioni libere della domanda finale ' +
+        '(la invitiamo a non inserirvi dati personali); data e durata della compilazione; se presente nel link ricevuto, un codice ' +
+        'alfanumerico che associa la risposta all’organizzazione invitata. Il questionario non registra il suo nome, il suo ' +
+        'indirizzo email né il suo indirizzo IP.' },
+    { titolo: 'Natura del conferimento',
+      testo: 'La partecipazione è volontaria. Può interrompere la compilazione in qualsiasi momento senza alcuna conseguenza: ' +
+        'le risposte vengono trasmesse solo quando preme «Invia».' },
+    { titolo: 'Modalità del trattamento',
+      testo: 'Le risposte sono registrate in un foglio di calcolo su Google Drive, accessibile solo al gruppo di ricerca. Google ' +
+        'opera come fornitore del servizio e i dati possono essere trasferiti al di fuori dell’Unione europea nel rispetto delle ' +
+        'garanzie previste dagli artt. 44 e seguenti del GDPR. L’elenco che associa i codici alle organizzazioni invitate è ' +
+        'conservato separatamente dalle risposte. Fino all’invio, le risposte parziali restano salvate solo nel browser del suo ' +
+        'dispositivo e vengono cancellate al momento dell’invio. I risultati sono pubblicati esclusivamente in forma aggregata. ' +
+        'La pagina del questionario è ospitata su GitHub Pages (GitHub, Inc.), che può registrare dati tecnici di navigazione, ' +
+        'come l’indirizzo IP, nei propri registri di servizio; tali dati non sono associati alle risposte.' },
+    { titolo: 'Destinatari',
+      testo: 'I dati sono trattati unicamente dai componenti del gruppo di ricerca delle due Università, autorizzati al ' +
+        'trattamento. I dati individuali non sono diffusi né comunicati a terzi.' },
+    { titolo: 'Conservazione',
+      testo: 'I dati sono conservati per il tempo necessario allo svolgimento della ricerca e comunque non oltre cinque anni ' +
+        'dalla conclusione del progetto; successivamente sono cancellati o resi anonimi.' },
+    { titolo: 'Diritti dell’interessato',
+      testo: 'Può esercitare i diritti previsti dagli artt. 15–22 GDPR (accesso, rettifica, cancellazione, limitazione, ' +
+        'opposizione) contattando i Responsabili della protezione dei dati dei due Atenei. Poiché le risposte non contengono dati ' +
+        'identificativi, potrà esserle chiesto il codice presente nel link ricevuto. Ha inoltre il diritto di proporre reclamo al ' +
+        'Garante per la protezione dei dati personali (art. 77 GDPR – www.garanteprivacy.it).' },
+  ],
+  mostraCodici: false,   // true = mostra A1, B2… accanto alle domande (utile nel pilota)
+  // Punti lasciati aperti nel documento:
+  shadowVedeC2: false,   // B2 = Sì: mostrare C2? (la tabella del flusso non la prevede)
+  shadowVedeB3: false,   // B2 = Sì: mostrare B3? (la nota di B3 dice sì, la tabella del flusso no)
+  d10NonSo: false,       // D10: aggiungere "Non so"? ("da valutare")
+};
+
+// Codici speciali registrati nel foglio
+const NON_MOSTRATA = 97;  // domanda non pertinente per il percorso (routing)
+const NA = 98;            // non applicabile
+const NS = 99;            // non so
+
+// ── Scale ricorrenti ──────────────────────────────────────────────────────
+const scala = etichette => etichette.map((t, i) => ({ v: i + 1, t }));
+const SN = [{ v: 1, t: 'Sì' }, { v: 0, t: 'No' }];
+const FREQ = scala(['Mai', 'Raramente', 'A volte', 'Spesso', 'Sempre']);
+const FREQ_D14 = scala(['Mai', 'Raramente', 'A volte', 'Spesso', 'Molto spesso']);
+const ESTENSIONE = scala(['In nessun processo o attività', 'In una minoranza', 'In circa metà',
+  'Nella maggioranza', 'In tutti o quasi tutti']);
+const NA_AREA = 'Non applicabile: l’area non è presente nell’organizzazione';
+const FASI = scala([
+  'Solo persone, senza AI',
+  'L’AI fornisce informazioni di supporto; le persone svolgono la fase',
+  'Ibrida: AI e persone contribuiscono entrambe in modo sostanziale (l’AI elabora o propone, le persone integrano e rivedono)',
+  'L’AI svolge gran parte della fase; le persone validano o approvano',
+  'L’AI svolge la fase in modo automatico; supervisione umana a posteriori o per eccezioni',
+]);
+const QUOTA = scala(['In pochissimi casi', 'In una minoranza dei casi', 'In circa metà dei casi',
+  'Nella maggioranza dei casi', 'In tutti o quasi tutti i casi']);
+const CAPACITA = scala(['Per nulla in grado', 'Poco in grado', 'Moderatamente in grado',
+  'Molto in grado', 'Pienamente in grado']);
+const FORMAZIONE = scala(['Nessuna', 'Occasionale o informale', 'Strutturata solo per alcuni ruoli',
+  'Strutturata per tutti i destinatari', 'Strutturata per tutti e aggiornata periodicamente']);
+const ATTIVITA_E7_E9 = [
+  { v: 1, t: 'Gestione dei sistemi AI' },
+  { v: 2, t: 'Implementazione dei software AI' },
+  { v: 3, t: 'Supervisione sul corretto funzionamento' },
+  { v: 4, t: 'Altro', altro: true },
+];
+
+// ── Condizioni riusabili ──────────────────────────────────────────────────
+const ha = (lista, ...valori) => Array.isArray(lista) && valori.some(v => lista.includes(v));
+const eleggibile = r => r.A1 === 1;
+const adottante = r => r.B1 === 1;
+const shadow = r => r.B1 === 0 && (r.B2 === 1 || r.B2 === 2);
+const bloccoC = r => adottante(r) || shadow(r);
+const decideUno = r => r.A8 === 2;
+const notaShadow = r => shadow(r)
+  ? 'Nel rispondere consideri l’uso dell’AI nella sua organizzazione, inclusi gli usi non formalmente autorizzati.' : '';
+
+const T_A = 'Sezione A – Caratteristiche dell’impresa e del rispondente';
+const T_B = 'Sezione B – Adozione dell’AI';
+const T_C = 'Sezione C – Dove e con quale intensità l’AI entra nel processo decisionale';
+const T_D = 'Sezione D – Come viene validato l’output dell’AI';
+const T_E = 'Sezione E – Chi supervisiona: responsabilità, accountability e capacità organizzative';
+
+// ── Pagine e domande ──────────────────────────────────────────────────────
+// Tipi: singola · multipla · griglia (più righe, stessa scala) · aperta
+const SEZIONI = [
+  {
+    id: 'A1', titolo: 'Presentazione del questionario', descrizione: OPZIONI.intro, informativa: OPZIONI.informativa,
+    domande: [
+      { id: 'CONS', tipo: 'multipla', testo: 'Consenso alla partecipazione',
+        messaggioObbligo: 'Per proseguire è necessario accettare.',
+        opzioni: [{ v: 1, t: 'Ho letto l’informativa sul trattamento dei dati personali e accetto di partecipare al questionario' }] },
+      { id: 'A1', tipo: 'singola', opzioni: SN, se: r => ha(r.CONS, 1),
+        testo: 'Nella sua posizione, è in grado di rispondere per conto dell’organizzazione sull’uso dell’AI e su come vengono prese le decisioni importanti (strategiche, di governo o di controllo)?' },
+    ],
+  },
+  {
+    id: 'FINE_A1', titolo: 'Grazie per la disponibilità', se: r => r.A1 === 0,
+    descrizione: 'Il questionario deve essere compilato da chi conosce l’uso dell’AI e i processi decisionali dell’organizzazione. ' +
+      'Le chiediamo cortesemente di inoltrare il link a un amministratore o a un dirigente informato.\n\nPrema «Invia» per chiudere.',
+    domande: [],
+  },
+  {
+    id: 'A', titolo: T_A, se: eleggibile,
+    domande: [
+      { id: 'A2', tipo: 'singola', testo: 'Quanti dipendenti conta complessivamente la sua organizzazione?',
+        opzioni: scala(['Meno di 10', '10–49', '50–249', '250–999', '1000 o più']) },
+      { id: 'A3', tipo: 'singola', testo: 'Qual è il settore di attività principale della sua organizzazione?',
+        opzioni: scala(['Manifatturiero', 'Costruzioni', 'Commercio', 'Trasporti e logistica',
+          'Servizi finanziari e assicurativi', 'ICT', 'Servizi professionali', 'Sanità'])
+          .concat([{ v: 9, t: 'Altro', altro: true }]) },
+      { id: 'A4', tipo: 'singola', testo: 'La sua organizzazione è:',
+        opzioni: scala(['Non quotata', 'Quotata su mercato regolamentato',
+          'Quotata su sistema multilaterale di negoziazione (es. Euronext Growth Milan)']) },
+      { id: 'A5', tipo: 'singola', opzioni: SN,
+        testo: 'La sua organizzazione dispone di una struttura organizzativa formalizzata, con funzioni/uffici distinti e responsabilità definite (es. organigramma o mansionario scritto)?' },
+      { id: 'A6', tipo: 'singola', testo: 'Qual è il suo ruolo nell’organizzazione?',
+        opzioni: scala(['Titolare/amministratore unico', 'Amministratore/consigliere', 'Amministratore delegato/DG',
+          'Responsabile IT/CIO/CTO', 'Responsabile risk/compliance/internal audit', 'Altro dirigente di funzione'])
+          .concat([{ v: 7, t: 'Altro', altro: true }]) },
+      { id: 'A7', tipo: 'multipla', aiuto: 'Anche più risposte.',
+        testo: 'Quali di queste funzioni esistono internamente nella sua organizzazione (anche se svolte da una sola persona e non in outsourcing)?',
+        opzioni: scala(['IT', 'Data management/data governance', 'Risk management', 'Compliance', 'Internal audit'])
+          .concat([{ v: 6, t: 'Nessuna delle precedenti', esclusiva: true }]) },
+      { id: 'A8', tipo: 'singola',
+        testo: 'Le decisioni più importanti per l’organizzazione (es. investimenti, piani, nuovi mercati) sono prese principalmente da:',
+        opzioni: [
+          { v: 1, t: 'Un organo collegiale (CdA, comitato esecutivo, management team)' },
+          { v: 2, t: 'Una sola persona (titolare, amministratore unico, AD con ampia autonomia)' },
+          { v: 3, t: 'Altro', altro: true },
+        ] },
+    ],
+  },
+  {
+    id: 'B', titolo: T_B, se: eleggibile,
+    domande: [
+      { id: 'B1', tipo: 'singola', opzioni: SN,
+        testo: 'La vostra organizzazione utilizza attualmente, in modo formalmente adottato o autorizzato, strumenti o sistemi basati sull’AI in almeno una funzione o attività (es. strumenti di AI generativa come ChatGPT, algoritmi predittivi, chatbot e soluzioni di automazione intelligente per analisi, previsioni, generazione di contenuti o supporto alle decisioni)?' },
+      { id: 'B2', tipo: 'singola', se: r => r.B1 === 0,
+        testo: 'Pur in assenza di un utilizzo formalmente adottato dalla sua organizzazione, è a conoscenza dell’uso autonomo di strumenti di AI da parte dei dipendenti per attività lavorative?',
+        opzioni: [{ v: 1, t: 'Sì, in modo diffuso' }, { v: 2, t: 'Sì, in modo occasionale o limitato' },
+          { v: 3, t: 'No' }, { v: NS, t: 'Non so' }] },
+      { id: 'B3', tipo: 'multipla', se: r => adottante(r) || (OPZIONI.shadowVedeB3 && shadow(r)),
+        testo: 'Che tipo di AI utilizza prevalentemente la vostra organizzazione? (anche più risposte)',
+        opzioni: [
+          { v: 1, t: 'AI predittiva/tradizionale (es. previsioni, scoring, classificazione)' },
+          { v: 2, t: 'AI generativa (es. generazione di testi, immagini, codice)' },
+          { v: 3, t: 'Altro', altro: true },
+          { v: NS, t: 'Non so', esclusiva: true },
+        ] },
+      { id: 'B4', tipo: 'multipla', max: 3, se: r => r.B1 === 0 && (r.B2 === 3 || r.B2 === NS),
+        testo: 'Quali sono le principali ragioni per cui la vostra organizzazione non utilizza AI? (max 3)',
+        opzioni: scala(['Costi elevati', 'Mancanza di competenze', 'Difficoltà su disponibilità o qualità dei dati',
+          'Incompatibilità con sistemi esistenti', 'Preoccupazioni su dati/privacy/sicurezza',
+          'Incertezza su aspetti legali e di responsabilità', 'Considerazioni etiche',
+          'Non ritenuta utile per l’organizzazione']).concat([{ v: 9, t: 'Altro', altro: true }]) },
+      { id: 'B5', tipo: 'singola', se: r => r.B1 === 0 && (r.B2 === 3 || r.B2 === NS),
+        testo: 'La sua organizzazione ha intenzione di adottare sistemi di AI?',
+        opzioni: scala(['L’adozione non è attualmente prevista', 'È in fase preliminare di valutazione',
+          'È stata programmata ma non sono state avviate attività concrete',
+          'È stata programmata e sono state avviate attività concrete']) },
+      // Controllo di attenzione per chi non usa l'AI (stesso filtro di B4–B5): chi usa l'AI riceve invece AC2.
+      { id: 'AC3', tipo: 'singola', opzioni: FREQ, attesa: 2, se: r => r.B1 === 0 && (r.B2 === 3 || r.B2 === NS),
+        testo: 'Gentilmente le chiediamo di selezionare «Raramente» come risposta a questa domanda, per confermare di aver letto attentamente questa istruzione.' },
+    ],
+  },
+  {
+    id: 'C_1', titolo: T_C, se: bloccoC, nota: notaShadow,
+    domande: [
+      { id: 'C1', tipo: 'griglia', opzioni: ESTENSIONE, aiuto: 'Le aree sono riferite alle attività, non alle posizioni.',
+        testo: 'In che misura l’AI viene utilizzata nelle seguenti aree della sua organizzazione?',
+        righe: [
+          { id: 'C1a', etichetta: '(a)', testo: 'Vertice e decisioni strategiche (direzione, CdA, supporto alle decisioni importanti)' },
+          { id: 'C1b', etichetta: '(b)', testo: 'Controllo e gestione dei rischi (risk management, compliance, internal audit, controllo interno)', na: true },
+          { id: 'C1c', etichetta: '(c)', testo: 'Attività operative (produzione, amministrazione, marketing, assistenza clienti, risorse umane, ecc.)' },
+          { id: 'C1d', etichetta: '(d)', testo: 'Altre attività (specificare)', na: true, specifica: true,
+            facoltativa: r => !(r.C1d_testo || '').trim() },
+        ] },
+      { id: 'C2', tipo: 'multipla', se: r => adottante(r) || OPZIONI.shadowVedeC2,
+        testo: 'Per quali finalità viene utilizzata l’AI nella sua organizzazione? (anche più risposte)',
+        opzioni: scala(['Semplificazione o automazione di attività e routine',
+          'Elaborazione, sintesi o organizzazione di informazioni', 'Generazione di contenuti (testi, immagini, codice)',
+          'Interazione con clienti o fornitori (assistenza, chatbot)', 'Preparazione di analisi, report o previsioni',
+          'Rilevamento di anomalie o rischi']).concat([{ v: 7, t: 'Altro', altro: true }]) },
+      { id: 'C3', tipo: 'multipla', se: r => r.C1b >= 2 && r.C1b <= 5, aiuto: 'Anche più risposte.',
+        testo: 'In quali di queste attività specifiche viene utilizzata l’AI?',
+        opzioni: scala(['Risk management', 'Compliance', 'Internal audit', 'Controllo interno e controllo di gestione',
+          'Monitoraggio antifrode']).concat([{ v: 6, t: 'Altro', altro: true }]) },
+      { id: 'C4', tipo: 'singola', opzioni: SN,
+        testo: 'Negli ultimi 12 mesi, analisi, previsioni o raccomandazioni prodotte dall’AI sono state utilizzate per preparare, discutere o valutare almeno una decisione importante (es. investimenti, nuovi prodotti o mercati, budget e piani, partnership o acquisizioni, riorganizzazioni, gestione dei rischi principali)?' },
+    ],
+  },
+  {
+    id: 'C_2', titolo: T_C, se: r => r.C4 === 1, nota: notaShadow,
+    domande: [
+      { id: 'C5', tipo: 'multipla', testo: 'In quali livelli del processo decisionale viene utilizzata l’AI? (anche più risposte)',
+        opzioni: [
+          { v: 1, t: 'Strategico/governance (es. decisioni del CdA o del vertice, strategie, investimenti, allocazione delle risorse, scenari)' },
+          { v: 2, t: 'Manageriale (es. pianificazione e budgeting, controllo di gestione)' },
+          { v: 3, t: 'Operativo (es. produzione, logistica, amministrazione, marketing, customer service, HR)' },
+          { v: 4, t: 'Altro', altro: true },
+        ] },
+      { id: 'C6', tipo: 'multipla', testo: 'Per quali tipi di decisione? (anche più risposte)',
+        opzioni: scala(['Investimenti e allocazione di risorse', 'Nuovi prodotti/mercati/clienti',
+          'Budget, pianificazione e controllo di gestione', 'Operazioni straordinarie (acquisizioni, partnership)',
+          'Gestione dei rischi e compliance', 'Organizzazione e risorse umane', 'Sostenibilità/ESG'])
+          .concat([{ v: 8, t: 'Altro', altro: true }]) },
+      { id: 'C7_C10', tipo: 'griglia', opzioni: FASI,
+        testo: 'Pensi all’ultima decisione importante per la quale avete utilizzato l’AI. In ciascuna delle fasi seguenti, chi ha svolto prevalentemente l’attività?',
+        righe: [
+          { id: 'C7', testo: 'Raccolta e monitoraggio delle informazioni (individuare problemi o opportunità)' },
+          { id: 'C8', testo: 'Analisi e valutazione (elaborazione dati, scenari, stime, rischi)' },
+          { id: 'C9', testo: 'Generazione delle alternative (opzioni o ipotesi di azione)' },
+          { id: 'C10', testo: 'Scelta finale tra le alternative' },
+        ] },
+    ],
+  },
+  {
+    id: 'C_3', titolo: T_C, se: r => r.C4 === 1 && ha(r.C5, 1), nota: notaShadow,
+    descrizione: 'Per ciascuna affermazione indichi con quale frequenza si verifica.',
+    domande: [
+      { id: 'C11', tipo: 'singola', opzioni: FREQ, aiuto: 'Riferimento: ultimi 12 mesi.',
+        testo: r => 'Le analisi o raccomandazioni dell’AI usate per decisioni importanti vengono presentate e discusse ' +
+          (decideUno(r) ? 'con collaboratori o consulenti.' : 'con chi partecipa alla decisione (CdA, management team).') },
+      { id: 'C12', tipo: 'singola', opzioni: FREQ,
+        testo: r => (decideUno(r) ? 'Nel confronto con collaboratori o consulenti' : 'Nella discussione') +
+          ', le raccomandazioni dell’AI vengono messe in discussione (es. domande su dati, ipotesi o limiti).' },
+      { id: 'C13', tipo: 'singola', opzioni: FREQ, testo: 'Le raccomandazioni dell’AI vengono confrontate con l’esperienza dei manager e con la conoscenza specifica dell’organizzazione (clienti, mercato, contesto interno).' },
+      { id: 'C14', tipo: 'singola', opzioni: FREQ, testo: 'Capita che, dopo il confronto con l’output dell’AI, una valutazione o un’ipotesi iniziale delle persone venga rivista.' },
+      { id: 'C15', tipo: 'singola', opzioni: FREQ, testo: 'Capita che un output o una raccomandazione dell’AI venga ridimensionata o scartata perché in contrasto con la conoscenza o l’esperienza delle persone.' },
+      { id: 'C16', tipo: 'singola', opzioni: FREQ, testo: 'Nella valutazione degli output dell’AI vengono coinvolte persone con competenze diverse (es. finanziarie, di settore, tecniche).' },
+      { id: 'C17', tipo: 'singola', opzioni: FREQ, testo: 'Quando un output dell’AI supporta una decisione strategica, quanto spesso al vertice aziendale o agli organi di governance vengono fornite informazioni sulle fonti o sui dati utilizzati?' },
+      { id: 'C18', tipo: 'singola', opzioni: FREQ, testo: 'Quanto spesso vengono esplicitate, allo stesso destinatario, le principali assunzioni su cui si basa l’output dell’AI?' },
+      { id: 'C19', tipo: 'singola', opzioni: FREQ, testo: 'Quanto spesso vengono esplicitati, allo stesso destinatario, i principali limiti o margini di incertezza dell’output dell’AI?' },
+      { id: 'C20', tipo: 'singola', opzioni: scala(['Molto ridotta', 'Ridotta', 'Invariata', 'Ampliata', 'Molto ampliata']),
+        testo: 'Rispetto a prima dell’utilizzo dell’AI, come è cambiata la varietà delle informazioni considerate dal vertice aziendale o dagli organi di governance?' },
+      { id: 'C21', tipo: 'singola', opzioni: scala(['Molto diminuita', 'Diminuita', 'Invariata', 'Aumentata', 'Molto aumentata']),
+        testo: 'Rispetto a prima dell’utilizzo dell’AI, come è cambiata la quantità di informazioni sottoposte al vertice aziendale o agli organi di governance?' },
+      { id: 'C22', tipo: 'singola', opzioni: scala(['Molto diminuito', 'Diminuito', 'Invariato', 'Aumentato', 'Molto aumentato']),
+        testo: 'Rispetto a prima dell’utilizzo dell’AI, come è cambiato il numero di alternative strategiche considerate prima della scelta finale?' },
+    ],
+  },
+  {
+    id: 'D_1', titolo: T_D, se: bloccoC, nota: notaShadow,
+    domande: [
+      { id: 'D1', tipo: 'singola', opzioni: SN,
+        testo: 'Nella sua organizzazione gli output generati dall’AI sono sottoposti a una qualche forma di verifica o controllo umano prima o durante il loro utilizzo?' },
+      { id: 'D2', tipo: 'singola', opzioni: QUOTA, se: r => r.D1 === 1,
+        testo: 'Quando l’AI produce output che vengono poi utilizzati, in quale quota dei casi l’output viene rivisto da una persona prima dell’uso?' },
+      { id: 'D3', tipo: 'singola', opzioni: FREQ, se: r => r.D1 === 1,
+        testo: 'Quando un output dell’AI viene rivisto, quanto spesso vengono verificati, quando accessibili, i dati o le fonti informative su cui si basa?' },
+      { id: 'D4', tipo: 'singola', opzioni: FREQ, se: r => r.D1 === 1,
+        testo: 'Quando un output dell’AI viene rivisto, quanto spesso vengono esaminate criticamente le principali assunzioni che ne sostengono il risultato?' },
+      { id: 'D5', tipo: 'singola', opzioni: FREQ, se: r => r.D1 === 1,
+        testo: 'Prima di utilizzare un output dell’AI per una decisione, quanto spesso esso viene confrontato con altre fonti di informazione o con stime indipendenti?' },
+      { id: 'D6', tipo: 'singola', opzioni: FREQ, se: r => r.D1 === 1,
+        testo: 'Prima di utilizzare un output dell’AI per una decisione, quanto spesso esso viene confrontato con il giudizio professionale o l’esperienza di persone competenti sul problema?' },
+    ],
+  },
+  {
+    id: 'D_2', titolo: T_D, se: bloccoC, nota: notaShadow,
+    domande: [
+      { id: 'D7', tipo: 'singola', opzioni: CAPACITA,
+        testo: 'In generale, quanto sono in grado le persone che utilizzano l’AI nella sua organizzazione di riconoscere output errati, incoerenti o poco affidabili?' },
+      { id: 'D8', tipo: 'singola', opzioni: CAPACITA,
+        testo: 'In generale, quanto sono in grado le persone che utilizzano l’AI di comprendere i principali limiti e le condizioni in cui i suoi output possono essere poco affidabili?' },
+      // Controllo di attenzione (instructed response item): "attesa" = risposta corretta. Non è una misura.
+      // Visto da tutti quelli che usano l'AI (adottanti e uso non autorizzato); chi non la usa riceve AC3.
+      { id: 'AC2', tipo: 'singola', opzioni: CAPACITA, attesa: 2,
+        testo: 'Gentilmente le chiediamo di selezionare «Poco in grado» come risposta a questa domanda, per confermare di aver letto attentamente questa istruzione.' },
+      { id: 'D9', tipo: 'singola', opzioni: CAPACITA,
+        testo: 'In generale, quanto sono in grado le persone che utilizzano l’AI di riconoscere quando un output richiede una verifica ulteriore o l’intervento di una persona con maggiore competenza?' },
+      { id: 'D10', tipo: 'singola', opzioni: OPZIONI.d10NonSo ? SN.concat([{ v: NS, t: 'Non so' }]) : SN,
+        testo: 'Negli ultimi 12 mesi sono stati individuati output dell’AI errati o inadeguati (anche se poi corretti)?' },
+      { id: 'D11', tipo: 'singola', opzioni: FREQ, se: r => r.D1 === 1, aiuto: 'Indichi con quale frequenza.',
+        testo: 'Per le decisioni più importanti o rischiose, gli output dell’AI vengono sottoposti a controlli aggiuntivi rispetto a quelli ordinari.' },
+      { id: 'D12', tipo: 'singola', opzioni: SN,
+        testo: 'Esistono procedure scritte o formalizzate che disciplinano la verifica degli output dell’AI prima del loro utilizzo?' },
+      { id: 'D13', tipo: 'singola', opzioni: SN,
+        testo: 'Esistono modalità, formali o informali, con cui chi usa un output dell’AI può correggerlo, contestarlo o non utilizzarlo (es. modificare il risultato, segnalare a un responsabile)?' },
+      { id: 'D14', tipo: 'singola', opzioni: FREQ_D14, se: r => r.D13 === 1,
+        testo: 'Negli ultimi 12 mesi, quante volte un output dell’AI è stato corretto, contestato o non utilizzato?' },
+    ],
+  },
+  {
+    id: 'E_1', titolo: T_E, se: bloccoC, nota: notaShadow,
+    domande: [
+      { id: 'E1', tipo: 'singola',
+        testo: 'Nella sua organizzazione è stata attribuita, formalmente o di fatto, a una persona o funzione la responsabilità di supervisionare l’utilizzo dell’AI?',
+        opzioni: scala(['Sì, con responsabilità formalmente attribuita', 'Sì, esercitata di fatto ma non formalizzata',
+          'No, ma l’attribuzione è in fase di definizione', 'No, e al momento non è prevista']) },
+      { id: 'E2', tipo: 'singola', se: r => r.E1 === 1 || r.E1 === 2, testo: 'Chi svolge principalmente questo ruolo?',
+        opzioni: scala(['Chief AI Officer/responsabile AI dedicato', 'CTO o responsabile IT', 'Risk manager',
+          'Responsabile compliance', 'Responsabile internal audit', 'Responsabile della protezione dei dati (DPO)',
+          'Responsabile della funzione che utilizza l’AI', 'Amministratore delegato/Direttore generale',
+          'Titolare/amministratore', 'Consulente esterno']).concat([{ v: 11, t: 'Altro', altro: true }]) },
+      { id: 'E3', tipo: 'singola', opzioni: SN,
+        testo: 'Esiste un comitato, organo o gruppo di lavoro (anche non formalizzato) che supervisiona specificamente l’utilizzo dell’AI (es. comitato AI, comitato rischi con delega specifica sull’AI)?' },
+      { id: 'E4', tipo: 'singola',
+        testo: 'Quale coinvolgimento ha il vertice dell’organizzazione (CdA, direzione, titolare/amministratore) nella supervisione dell’utilizzo dell’AI?',
+        opzioni: scala(['Nessun coinvolgimento', 'È informato in modo occasionale', 'È informato periodicamente',
+          'Definisce gli indirizzi e le regole d’uso e ne monitora l’applicazione'])
+          .concat([{ v: NA, t: 'Non applicabile: le decisioni sono assunte direttamente da chi risponde dell’AI', se: decideUno }]) },
+      { id: 'E5', tipo: 'singola', se: r => ha(r.A7, 3, 4, 5),
+        testo: 'Le funzioni di risk management, compliance o internal audit presenti nella vostra organizzazione come sono coinvolte nella supervisione dell’utilizzo dell’AI?',
+        opzioni: scala(['Non coinvolte', 'Consultate in modo occasionale', 'Coinvolte nella definizione di regole o controlli',
+          'Svolgono verifiche periodiche sull’uso dell’AI']) },
+    ],
+  },
+  {
+    id: 'E_2', titolo: T_E, se: bloccoC, nota: notaShadow,
+    domande: [
+      { id: 'E6', tipo: 'singola', opzioni: SN,
+        testo: 'La vostra organizzazione dispone internamente di competenze tecniche specifiche sull’AI (es. data scientist, AI specialist, informatici con competenze specifiche in AI)?' },
+      { id: 'E7', tipo: 'multipla', opzioni: ATTIVITA_E7_E9, se: r => r.E6 === 1,
+        testo: 'Chi possiede competenze tecniche specifiche sull’AI quali attività svolge? (anche più risposte)' },
+      { id: 'E8', tipo: 'singola', opzioni: SN,
+        testo: 'La vostra organizzazione ricorre a consulenti o fornitori esterni con competenze sull’AI?' },
+      { id: 'E9', tipo: 'multipla', opzioni: ATTIVITA_E7_E9, se: r => r.E8 === 1,
+        testo: 'Consulenti o fornitori esterni con competenze AI quali attività svolgono? (anche più risposte)' },
+      { id: 'E10', tipo: 'singola', testo: 'Nelle decisioni supportate dall’AI, la responsabilità finale delle conseguenze è:',
+        opzioni: scala(['Non definita', 'Chiara di fatto, ma non formalizzata',
+          'Attribuita formalmente (policy, mansionario, delibera)']) },
+      { id: 'E11', tipo: 'multipla',
+        testo: 'Chi, nella vostra organizzazione, ha l’autorità di decidere di non utilizzare un output dell’AI? (anche più risposte)',
+        opzioni: scala(['Chi utilizza l’output', 'Il responsabile di funzione/di linea',
+          'Il responsabile della supervisione dell’AI (se presente)', 'Il vertice o la proprietà'])
+          .concat([{ v: 5, t: 'Nessuno in particolare: l’output viene seguito', esclusiva: true }]) },
+      { id: 'E12', tipo: 'griglia', opzioni: FORMAZIONE, testo: 'Ai seguenti gruppi viene fornita formazione specifica sull’AI?',
+        righe: [
+          { id: 'E12a', etichetta: '(a)', testo: 'A chi la utilizza: su funzionamento e uso pratico' },
+          { id: 'E12b', etichetta: '(b)', testo: 'A chi la utilizza: su rischi, limiti e possibili errori' },
+          { id: 'E12c', etichetta: '(c)', testo: 'A chi partecipa alle decisioni importanti (vertice, CdA, titolare): su opportunità e rischi dell’AI' },
+        ] },
+    ],
+  },
+  {
+    id: 'F', titolo: 'Sezione F – Chiusura', se: eleggibile,
+    domande: [
+      { id: 'F1', tipo: 'aperta', facoltativa: true, maxCaratteri: 1000, aiuto: 'Facoltativa. Massimo 1000 caratteri.',
+        testo: 'Desidera aggiungere osservazioni sul modo in cui la sua organizzazione utilizza o supervisiona l’AI o su aspetti non trattati dal questionario?' },
+    ],
+  },
+];
+</script>
+
+  <script>
+  (function () {
+    const ID = (new URLSearchParams(location.search).get('id') || '').replace(/[^\w-]/g, '').slice(0, 40); // dal link: ...?id=IMP001
+    // Indirizzo della web app Apps Script che riceve le risposte e le scrive nel foglio Google
+    const URL_INVIO = 'https://script.google.com/macros/s/AKfycbwIoX9YWcy_Umz3SJ0b2K_vGqxVgaLKPHiaOV2G_xEym5bAqeJqikrWqI7FvoxP7nf_/exec';
+    const CHIAVE = 'questionario_uniba_' + (ID || 'anonimo');
+    const inizio = Date.now();
+
+    const $ = s => document.querySelector(s);
+    const app = $('#app'), btnAvanti = $('#avanti'), btnIndietro = $('#indietro');
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    // Rende cliccabili email e indirizzi web (testo già "escapato")
+    const collega = h => h
+      .replace(/([\w.+-]+@[\w-]+(\.[\w-]+)+)/g, '<a href="mailto:$1">$1</a>')
+      .replace(/\b(www\.[\w-]+(\.[\w-]+)+)\b/g, '<a href="https://$1" target="_blank" rel="noopener">$1</a>');
+    const testoDi = (x, r) => (typeof x === 'function' ? x(r) : (x || ''));
+    const vero = (x, r) => (typeof x === 'function' ? !!x(r) : !!x);
+
+    // Indice delle domande
+    const DOMANDE = {};
+    SEZIONI.forEach(s => s.domande.forEach(q => { DOMANDE[q.id] = q; }));
+    const opzAltro = q => (q.opzioni || []).find(o => o.altro);
+    const opzioniRiga = (q, rg) => rg.na ? q.opzioni.concat([{ v: NA, t: rg.na === true ? NA_AREA : rg.na }]) : q.opzioni;
+
+    // Stato (con bozza salvata sul dispositivo)
+    let risposte = {}, pagina = 0;
+    try {
+      const b = JSON.parse(localStorage.getItem(CHIAVE) || 'null');
+      if (b) { risposte = b.risposte || {}; pagina = b.pagina || 0; }
+    } catch (e) { /* archiviazione non disponibile */ }
+    const salvaBozza = () => {
+      try { localStorage.setItem(CHIAVE, JSON.stringify({ risposte, pagina })); } catch (e) { }
+    };
+
+    // ── Costruzione della pagina ───────────────────────────────────────────
+    $('#titolo').textContent = OPZIONI.titolo;
+    $('#sottotitolo').textContent = OPZIONI.sottotitolo;
+    if (!OPZIONI.mostraCodici) document.body.classList.add('nascondi-codici');
+
+    const elementi = {}, sezEl = [];
+
+    function htmlOpzioni(nome, ops, tipo) {
+      const orizz = ops.length <= 6 && ops.every(o => o.t.length <= 24 && !o.altro);
+      return '<div class="opzioni' + (orizz ? ' orizz' : '') + '" role="' + (tipo === 'radio' ? 'radiogroup' : 'group') + '">' +
+        ops.map(o =>
+          '<label class="opz" data-opt="' + nome + ':' + o.v + '"><input type="' + tipo + '" name="' + nome +
+          '" value="' + o.v + '"><span>' + esc(o.t) + '</span></label>' +
+          (o.altro ? '<input type="text" class="altro" data-var="' + nome + '_altro" maxlength="200" placeholder="Specificare" hidden>' : '')
+        ).join('') + '</div>';
+    }
+
+    // Etichetta della riga: (a), (b)… dal documento; il nome della variabile solo se mostraCodici
+    function badge(rg) {
+      const t = rg.etichetta || (OPZIONI.mostraCodici ? rg.id : '');
+      return t ? '<span class="codice">' + esc(t) + '</span>' : '';
+    }
+
+    function costruisciDomanda(q) {
+      const box = document.createElement('div');
+      box.className = 'domanda';
+      let h = '<div class="etichetta"><span class="codice">' + esc(q.id.replace('_', '–')) + '</span> <span class="testo"></span></div>';
+      if (q.aiuto) h += '<div class="aiuto">' + esc(q.aiuto) + '</div>';
+      if (q.tipo === 'singola') h += htmlOpzioni(q.id, q.opzioni, 'radio');
+      else if (q.tipo === 'multipla') h += htmlOpzioni(q.id, q.opzioni, 'checkbox');
+      else if (q.tipo === 'griglia') {
+        h += q.righe.map(rg =>
+          '<div class="riga" data-riga="' + rg.id + '"><div class="riga-titolo">' + badge(rg) + esc(rg.testo) + '</div>' +
+          (rg.specifica ? '<input type="text" class="specifica" data-var="' + rg.id + '_testo" maxlength="200" placeholder="Specificare">' : '') +
+          htmlOpzioni(rg.id, opzioniRiga(q, rg), 'radio') +
+          '<div class="errore-riga" hidden>Risposta obbligatoria</div></div>').join('');
+      } else if (q.tipo === 'aperta') {
+        h += '<textarea data-var="' + q.id + '" maxlength="' + (q.maxCaratteri || 1000) + '" rows="5"></textarea>' +
+          '<div class="contatore"></div>';
+      }
+      h += '<div class="errore" hidden></div>';
+      box.innerHTML = h;
+      elementi[q.id] = { box, testo: box.querySelector('.testo'), errore: box.querySelector('.errore') };
+      return box;
+    }
+
+    SEZIONI.forEach((s, i) => {
+      const sec = document.createElement('section');
+      sec.className = 'sezione';
+      sec.hidden = true;
+      sec.innerHTML = '<h2>' + esc(s.titolo) + '</h2>' +
+        (s.descrizione ? '<p class="descr">' + collega(esc(s.descrizione)).replace(/\n/g, '<br>') + '</p>' : '') +
+        (s.informativa ? '<details class="informativa"><summary>Informativa sul trattamento dei dati personali (art. 13 GDPR) – clicchi per leggerla</summary><div class="corpo">' +
+          s.informativa.map(x => '<h3>' + esc(x.titolo) + '</h3><p>' + collega(esc(x.testo)) + '</p>').join('') + '</div></details>' : '') +
+        '<p class="nota" hidden></p>';
+      s.domande.forEach(q => sec.appendChild(costruisciDomanda(q)));
+      app.appendChild(sec);
+      sezEl[i] = sec;
+    });
+
+    // ── Logica: visibilità e risposte "pulite" ─────────────────────────────
+    function variabiliDi(q) {
+      if (q.tipo === 'griglia') return q.righe.flatMap(rg => rg.specifica ? [rg.id, rg.id + '_testo'] : [rg.id]);
+      if (opzAltro(q)) return [q.id, q.id + '_altro'];
+      return [q.id];
+    }
+
+    // Percorre le domande in ordine: una domanda nascosta non conta per le condizioni successive.
+    function calcola() {
+      const r = {}, visQ = new Set(), visSez = [];
+      SEZIONI.forEach((s, i) => {
+        const sv = !s.se || !!s.se(r);
+        let n = 0;
+        s.domande.forEach(q => {
+          if (!sv || (q.se && !q.se(r))) return;
+          visQ.add(q.id); n++;
+          variabiliDi(q).forEach(v => { if (risposte[v] !== undefined) r[v] = risposte[v]; });
+          if (q.tipo === 'singola') {
+            const o = q.opzioni.find(x => x.v === r[q.id]);
+            if (o && o.se && !o.se(r)) delete r[q.id];
+          }
+        });
+        visSez[i] = sv && (n > 0 || s.domande.length === 0);
+      });
+      return { r, visQ, visSez };
+    }
+
+    function aggiorna() {
+      const { r, visQ, visSez } = calcola();
+      SEZIONI.forEach((s, i) => {
+        sezEl[i].hidden = i !== pagina;
+        const nota = sezEl[i].querySelector('.nota');
+        const t = testoDi(s.nota, r);
+        nota.textContent = t; nota.hidden = !t;
+        s.domande.forEach(q => {
+          const el = elementi[q.id];
+          el.box.hidden = !visQ.has(q.id);
+          el.testo.textContent = testoDi(q.testo, r);
+          (q.opzioni || []).forEach(o => {
+            if (!o.se || q.tipo === 'griglia') return;
+            const lab = el.box.querySelector('[data-opt="' + q.id + ':' + o.v + '"]');
+            lab.hidden = !o.se(r);
+            if (lab.hidden) lab.querySelector('input').checked = false;
+          });
+          const alt = opzAltro(q);
+          if (alt && q.tipo !== 'griglia') {
+            const val = risposte[q.id];
+            el.box.querySelector('input.altro').hidden = !(val === alt.v || (Array.isArray(val) && val.includes(alt.v)));
+          }
+          if (q.tipo === 'aperta') {
+            el.box.querySelector('.contatore').textContent = (risposte[q.id] || '').length + '/' + (q.maxCaratteri || 1000);
+          }
+        });
+      });
+      // "Invia" solo sull'ultima pagina e quando è compilata (prima di rispondere, altre pagine possono comparire)
+      const ultima = !visSez.some((v, i) => v && i > pagina) &&
+        SEZIONI[pagina].domande.every(q => !visQ.has(q.id) || !erroreDi(q, r, false));
+      btnAvanti.textContent = ultima ? 'Invia' : 'Avanti';
+      btnIndietro.hidden = !visSez.some((v, i) => v && i < pagina);
+      const regolari = SEZIONI.filter(s => s.domande.length);
+      const pos = regolari.indexOf(SEZIONI[pagina]);
+      $('#barra').style.width = (pos < 0 ? 100 : Math.round((pos + 1) / regolari.length * 100)) + '%';
+    }
+
+    // ── Inserimento delle risposte ────────────────────────────────────────
+    function suModifica(e) {
+      const el = e.target;
+      const box = el.closest('.domanda');
+      if (el.type === 'radio') {
+        risposte[el.name] = Number(el.value);
+      } else if (el.type === 'checkbox') {
+        const q = DOMANDE[el.name], v = Number(el.value);
+        let sel = (risposte[el.name] || []).filter(x => x !== v);
+        if (el.checked) {
+          const esclusiva = x => (q.opzioni.find(o => o.v === x) || {}).esclusiva;
+          sel = esclusiva(v) ? [] : sel.filter(x => !esclusiva(x));
+          if (q.max && sel.length >= q.max) {
+            el.checked = false;
+            mostraErrore(q.id, 'Può selezionare al massimo ' + q.max + ' risposte.');
+            return;
+          }
+          sel.push(v);
+        }
+        risposte[el.name] = sel;
+        box.querySelectorAll('input[type=checkbox][name="' + el.name + '"]').forEach(c => {
+          c.checked = sel.includes(Number(c.value));
+        });
+      } else if (el.dataset.var) {
+        // Campi di testo: si aggiorna mentre si scrive, non all’uscita dal campo
+        // (all’uscita la pagina si sposterebbe proprio mentre si clicca altrove).
+        if (e.type !== 'input') return;
+        risposte[el.dataset.var] = el.value;
+        aggiornaContatore(el);
+        pulisciErrore(el);
+        salvaBozza();
+        return;
+      } else return;
+      pulisciErrore(el);
+      salvaBozza();
+      aggiorna();
+    }
+    function pulisciErrore(el) {
+      const box = el.closest('.domanda');
+      if (box) { box.classList.remove('con-errore'); box.querySelector('.errore').hidden = true; }
+      const riga = el.closest('.riga');
+      if (riga) { riga.classList.remove('con-errore'); riga.querySelector('.errore-riga').hidden = true; }
+    }
+    function aggiornaContatore(el) {
+      const c = el.parentNode.querySelector('.contatore');
+      if (c && el.tagName === 'TEXTAREA') c.textContent = el.value.length + '/' + el.maxLength;
+    }
+    app.addEventListener('change', suModifica);
+    app.addEventListener('input', e => { if (e.target.dataset.var) suModifica(e); });
+
+    function mostraErrore(id, msg) {
+      const el = elementi[id];
+      el.errore.textContent = msg; el.errore.hidden = !msg;
+      el.box.classList.toggle('con-errore', !!msg);
+    }
+
+    // ── Controlli di compilazione ─────────────────────────────────────────
+    function erroreDi(q, r, segna) {
+      const facolt = vero(q.facoltativa, r);
+      const alt = opzAltro(q);
+      const vuoto = s => !(s || '').trim();
+      if (q.tipo === 'singola') {
+        if (r[q.id] === undefined) return facolt ? '' : 'Risposta obbligatoria.';
+        if (alt && r[q.id] === alt.v && vuoto(r[q.id + '_altro'])) return 'Specifichi la risposta «Altro».';
+      } else if (q.tipo === 'multipla') {
+        const s = r[q.id] || [];
+        if (!s.length) return facolt ? '' : (q.messaggioObbligo || 'Selezioni almeno una risposta.');
+        if (alt && s.includes(alt.v) && vuoto(r[q.id + '_altro'])) return 'Specifichi la risposta «Altro».';
+      } else if (q.tipo === 'griglia') {
+        let mancano = false;
+        elementi[q.id].box.querySelectorAll('.riga').forEach(div => {
+          const rg = q.righe.find(x => x.id === div.dataset.riga);
+          const manca = !vero(rg.facoltativa, r) && r[rg.id] === undefined;
+          if (segna !== false) {
+            div.classList.toggle('con-errore', manca);
+            div.querySelector('.errore-riga').hidden = !manca;
+          }
+          mancano = mancano || manca;
+        });
+        if (mancano) return 'Risponda a tutte le righe.';
+      } else if (q.tipo === 'aperta') {
+        if (!facolt && vuoto(r[q.id])) return 'Risposta obbligatoria.';
+      }
+      return '';
+    }
+
+    function valida(i) {
+      const { r, visQ } = calcola();
+      let primo = null;
+      SEZIONI[i].domande.forEach(q => {
+        if (!visQ.has(q.id)) return;
+        const msg = erroreDi(q, r);
+        mostraErrore(q.id, msg);
+        if (msg && !primo) primo = elementi[q.id].box;
+      });
+      if (primo) primo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return !primo;
+    }
+
+    // ── Navigazione ───────────────────────────────────────────────────────
+    function vaiA(p) {
+      pagina = p;
+      salvaBozza();
+      aggiorna();
+      window.scrollTo(0, 0);
+    }
+    btnAvanti.addEventListener('click', () => {
+      if (!valida(pagina)) return;
+      const { visSez } = calcola();
+      const prossima = visSez.findIndex((v, i) => v && i > pagina);
+      if (prossima < 0) invia(); else vaiA(prossima);
+    });
+    btnIndietro.addEventListener('click', () => {
+      const { visSez } = calcola();
+      for (let i = pagina - 1; i >= 0; i--) if (visSez[i]) return vaiA(i);
+    });
+
+    // ── Invio ─────────────────────────────────────────────────────────────
+    // Una colonna per variabile; le scelte multiple diventano colonne 1/0 (es. A7_1, A7_2…).
+    function preparaDati() {
+      const { r, visQ } = calcola();
+      const colonne = [], valori = {};
+      const metti = (k, v) => { colonne.push(k); valori[k] = v; };
+      const txt = s => (s || '').trim();
+      SEZIONI.forEach(s => s.domande.forEach(q => {
+        const vis = visQ.has(q.id), alt = opzAltro(q);
+        if (q.tipo === 'singola') {
+          metti(q.id, vis ? (r[q.id] !== undefined ? r[q.id] : '') : NON_MOSTRATA);
+          if (alt) metti(q.id + '_altro', vis && r[q.id] === alt.v ? txt(r[q.id + '_altro']) : '');
+        } else if (q.tipo === 'multipla') {
+          const sel = r[q.id] || [];
+          q.opzioni.forEach(o => metti(q.id + '_' + o.v, vis ? (sel.includes(o.v) ? 1 : 0) : NON_MOSTRATA));
+          if (alt) metti(q.id + '_altro', vis && sel.includes(alt.v) ? txt(r[q.id + '_altro']) : '');
+        } else if (q.tipo === 'griglia') {
+          q.righe.forEach(rg => {
+            if (rg.specifica) metti(rg.id + '_testo', vis ? txt(r[rg.id + '_testo']) : '');
+            metti(rg.id, vis ? (r[rg.id] !== undefined ? r[rg.id] : '') : NON_MOSTRATA);
+          });
+        } else {
+          metti(q.id, vis ? txt(r[q.id]) : '');
+        }
+      }));
+      // Controlli di attenzione: esito di ciascuno e giudizio complessivo
+      // AC_esito: 1 = valida · 3 = da escludere. Ogni rispondente vede un solo controllo (AC2 o AC3);
+      // il valore 2 resterebbe solo se in futuro se ne mostrassero due e ne fosse sbagliato uno.
+      const esiti = [];
+      SEZIONI.forEach(s => s.domande.forEach(q => {
+        if (q.attesa === undefined) return;
+        const vis = visQ.has(q.id);
+        const ok = vis ? (r[q.id] === q.attesa ? 1 : 0) : NON_MOSTRATA;
+        metti(q.id + '_ok', ok);
+        if (vis) esiti.push(ok);
+      }));
+      const sbagliati = esiti.filter(x => x === 0).length;
+      metti('AC_esito', !esiti.length ? NON_MOSTRATA : !sbagliati ? 1 : (sbagliati === esiti.length ? 3 : 2));
+      return { colonne, valori };
+    }
+
+    // Dizionario delle variabili (scritto nel foglio "Codebook" alla prima risposta; le variabili nuove vengono aggiunte in fondo)
+    function codebook() {
+      const righe = [['variabile', 'domanda', 'valori']];
+      const codici = ops => ops.map(o => o.v + ' = ' + o.t).join('; ');
+      SEZIONI.forEach(s => s.domande.forEach(q => {
+        const t = testoDi(q.testo, {}), alt = opzAltro(q);
+        if (q.tipo === 'singola') righe.push([q.id, t, codici(q.opzioni)]);
+        if (q.tipo === 'multipla') q.opzioni.forEach(o => righe.push([q.id + '_' + o.v, t + ' → ' + o.t, '1 = selezionata; 0 = non selezionata']));
+        if (alt && q.tipo !== 'griglia') righe.push([q.id + '_altro', t + ' → testo «Altro»', 'testo libero']);
+        if (q.tipo === 'griglia') q.righe.forEach(rg => {
+          if (rg.specifica) righe.push([rg.id + '_testo', t + ' → ' + rg.testo + ': specificare', 'testo libero']);
+          righe.push([rg.id, t + ' → ' + rg.testo, codici(opzioniRiga(q, rg))]);
+        });
+        if (q.tipo === 'aperta') righe.push([q.id, t, 'testo libero']);
+      }));
+      SEZIONI.forEach(s => s.domande.forEach(q => {
+        if (q.attesa === undefined) return;
+        const o = q.opzioni.find(x => x.v === q.attesa);
+        righe.push([q.id + '_ok', 'Controllo di attenzione ' + q.id + ' superato (risposta richiesta: ' + q.attesa + ' = ' + (o ? o.t : '') + ')',
+          '1 = superato; 0 = non superato']);
+      }));
+      righe.push(['AC_esito', 'Esito dei controlli di attenzione',
+        '1 = valida (controllo di attenzione superato); 3 = da escludere (controllo di attenzione non superato)']);
+      righe.push(['', '', '']);
+      righe.push(['(codici speciali)', '', NON_MOSTRATA + ' = domanda non mostrata (non pertinente per il percorso); ' +
+        NA + ' = non applicabile; ' + NS + ' = non so; cella vuota = domanda facoltativa senza risposta']);
+      return righe;
+    }
+
+    function invia() {
+      const dati = preparaDati();
+      btnAvanti.disabled = true;
+      btnAvanti.textContent = 'Invio in corso…';
+      $('#avviso').hidden = true;
+      const fallito = err => {
+        btnAvanti.disabled = false;
+        btnAvanti.textContent = 'Invia';
+        $('#avviso').textContent = 'Non è stato possibile inviare le risposte (' + (err && err.message || err) +
+          '). Le risposte restano salvate su questo dispositivo: riprovi tra qualche istante.';
+        $('#avviso').hidden = false;
+      };
+      // text/plain evita la richiesta preliminare CORS, che Apps Script non gestisce
+      fetch(URL_INVIO, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          id: ID,
+          durata: Math.round((Date.now() - inizio) / 1000),
+          colonne: dati.colonne,
+          valori: dati.valori,
+          codebook: codebook(),
+        }),
+      })
+        .then(r => r.json())
+        .then(esito => {
+          if (!esito || !esito.ok) throw new Error((esito && esito.errore) || 'risposta non valida');
+          try { localStorage.removeItem(CHIAVE); } catch (e) { }
+          app.hidden = true; $('#nav').hidden = true; $('#esito').hidden = false;
+          window.scrollTo(0, 0);
+        })
+        .catch(fallito);
+    }
+
+    // ── Avvio: ripristino della bozza ──────────────────────────────────────
+    Object.keys(risposte).forEach(k => {
+      const v = risposte[k];
+      if (Array.isArray(v)) {
+        v.forEach(x => { const c = app.querySelector('input[type=checkbox][name="' + k + '"][value="' + x + '"]'); if (c) c.checked = true; });
+      } else if (typeof v === 'number') {
+        const c = app.querySelector('input[type=radio][name="' + k + '"][value="' + v + '"]'); if (c) c.checked = true;
+      } else {
+        const c = app.querySelector('[data-var="' + k + '"]'); if (c) c.value = v;
+      }
+    });
+    if (!calcola().visSez[pagina]) pagina = 0;
+    aggiorna();
+
+  })();
+  </script>
+</body>
+</html>
